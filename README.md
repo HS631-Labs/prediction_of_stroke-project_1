@@ -2,6 +2,8 @@
 ### Description
 ### Content
 
+run
+
 ### Null hypothesis: 
 There is no relationship between the variables like gender, age, various diseases, and smoking status and stroke, the 2nd leading cause of death.
 
