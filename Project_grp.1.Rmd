@@ -29,7 +29,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #12) stroke: 1 if the patient had a stroke or 0 if not
 #*Note: "Unknown" in smoking_status means that the information is unavailable for this patient
 
-```{r cars}
+```{r}
+
 getwd()
 Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
 
@@ -42,8 +43,11 @@ colSums(is.na(Stroke_dataset))
 ```
 
 
-```{r pressure, echo=FALSE}
+```{r}
+
+summary(Stroke_dataset)
+Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
+Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
