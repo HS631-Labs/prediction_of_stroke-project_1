@@ -53,6 +53,27 @@ Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 
 ```{r}
 ###Swarna
+install.packages("caTools")
+install.packages("ggpubr")
+install.packages("ggcorrplot")
+library(plotly)
+library(ggplot2)
+library(ggcorrplot)
+library(ggpubr)
+library(dplyr)
+library(VennDiagram)
+library(ggbeeswarm)
+library(pwr)
+library(psych)
+library(pastecs)
+library(ggm)
+library(Hmisc)
+library(pwr)
+library(car)
+library(caTools)
+library("MASS")
+
+
 # Aim to predict if the patient will have stroke
 #Does the patient experience stroke
 # Null Hypothesis: Patients will not have stroke
@@ -70,21 +91,71 @@ Stroke[is.na(Stroke)] <- 0
 summary(Stroke)
 str(Stroke)
 
+Stroke <- Stroke[,-15]
 
-Stroke$bmi[Stroke$bmi == 0] <- runif(sum(Stroke$bmi == 0), min = 23, max = 28.8)
+Stroke$bmi[Stroke$bmi == 0] <- runif(sum(Stroke$bmi == 0), min = 22.9, max = 32.8)
 
 Stroke$gender <- as.factor(Stroke$gender)
 Stroke$ever_married <- as.factor(Stroke$ever_married)
 Stroke$work_type <- as.factor(Stroke$work_type)
 Stroke$Residence_type <- as.factor(Stroke$Residence_type)
 Stroke$smoking_status <- as.factor(Stroke$smoking_status)
-
-summary(Stroke)
-
 Stroke$hypertension <- as.factor(Stroke$hypertension)
 Stroke$heart_disease <- as.factor(Stroke$heart_disease)
+Stroke$stroke <- as.factor(Stroke$stroke)
 
 summary(Stroke)
+
+plot(Stroke$hypertension,Stroke$age)
+plot(Stroke$heart_disease,Stroke$age)
+plot(Stroke$stroke,Stroke$age)
+plot(Stroke$stroke,Stroke$OnAdmit_heartRate)
+
+ggplot(data=Stroke,aes(x=smoking_status,fill=stroke)) + geom_histogram(stat="count")
+ggplot(data=Stroke,aes(x=bmi,fill=stroke)) + geom_density()
+
+ggplot(data=Stroke,aes(x=age)) + geom_density()
+ggplot(data=Stroke,aes(x=bmi)) + geom_density()
+ggplot(data=Stroke,aes(x=avg_glucose_level)) + geom_density()
+ggplot(data=Stroke,aes(x=sysBP)) + geom_density()
+ggplot(data=Stroke,aes(x=diaBP)) + geom_density()
+ggplot(data=Stroke,aes(x=OnAdmit_heartRate)) + geom_density()
+
+Stroke$logbmi <- log(Stroke$bmi)
+ggplot(data=Stroke,aes(x=logbmi)) + geom_density()
+
+Stroke$logglucose <- log(Stroke$avg_glucose_level-45)
+ggplot(data=Stroke,aes(x=logglucose)) + geom_density()
+
+
+
+split <- sample.split(Stroke$stroke, SplitRatio = 0.8)
+TrainStroke <- subset(Stroke,split==TRUE)
+TestStroke <- subset(Stroke,split==FALSE)
+
+stat.desc(TrainStroke, basic = FALSE, norm = TRUE)
+stat.desc(TestStroke, basic = FALSE, norm = TRUE)
+
+corr = round(cor(Stroke[,c(3,9,10,13,14,15)]),2)
+corr
+
+ggcorrplot(corr,hc.order=TRUE)
+
+# strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status, data = TrainStroke, family="binomial")
+# summary(strokepredict)
+
+# Newstrokepredict <- stepAIC (strokepredict)
+# summary(Newstrokepredict)
+
+# ResultStroke <- predict(strokepredict,TestStroke,type="response")
+
+# confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
+# confmatrix
+
+# (confmatrix[[1,1]] + confmatrix[[2,2]])/sum(confmatrix)
+
+Stroke %>% ggplot (aes(x=bmi)) + geom_density()
+
 stat.desc(Stroke, basic = FALSE, norm = TRUE)
 
 hist(Stroke$age)
@@ -94,5 +165,7 @@ strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever
 summary(strokepredict)
 
 round (exp(coef(strokepredict)),3)
+
+shapiro.test(Stroke$bmi)
 ```
 
