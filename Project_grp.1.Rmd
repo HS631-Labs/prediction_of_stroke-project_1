@@ -51,3 +51,48 @@ Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 
 ```
 
+```{r}
+###Swarna
+# Aim to predict if the patient will have stroke
+#Does the patient experience stroke
+# Null Hypothesis: Patients will not have stroke
+#Alternative hypothesis: Patients will have stroke 
+#Methodology: Use Multiple logistic regression to predict
+#Dependent variable: Stroke
+#Independent variables: 10 independent variables
+#outcome variable: Stroke
+#Quantitative variables: age, avg glucose level, bmi, stroke, sus BP, diaBP, BMI, on admit heart rate
+#Categorical: gender, hypertension, heart disease, ever married, work type, residence type, smoking status
+
+Stroke <- read.csv("Stroke_dataset.csv",header = TRUE, sep = ",")
+any(is.na(Stroke))
+Stroke[is.na(Stroke)] <- 0
+summary(Stroke)
+str(Stroke)
+
+
+Stroke$bmi[Stroke$bmi == 0] <- runif(sum(Stroke$bmi == 0), min = 23, max = 28.8)
+
+Stroke$gender <- as.factor(Stroke$gender)
+Stroke$ever_married <- as.factor(Stroke$ever_married)
+Stroke$work_type <- as.factor(Stroke$work_type)
+Stroke$Residence_type <- as.factor(Stroke$Residence_type)
+Stroke$smoking_status <- as.factor(Stroke$smoking_status)
+
+summary(Stroke)
+
+Stroke$hypertension <- as.factor(Stroke$hypertension)
+Stroke$heart_disease <- as.factor(Stroke$heart_disease)
+
+summary(Stroke)
+stat.desc(Stroke, basic = FALSE, norm = TRUE)
+
+hist(Stroke$age)
+
+#applying glm
+strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status, data = Stroke, family="binomial")
+summary(strokepredict)
+
+round (exp(coef(strokepredict)),3)
+```
+
