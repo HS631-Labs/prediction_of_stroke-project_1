@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #12) stroke: 1 if the patient had a stroke or 0 if not
 #*Note: "Unknown" in smoking_status means that the information is unavailable for this patient
 
-Chunk 1:
+Chunk 1:(Neha-changes in chunk1 to chunk9)
 ```{r}
 #Reading the dataset and checking for NA's.
 
