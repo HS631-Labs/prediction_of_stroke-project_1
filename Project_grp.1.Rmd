@@ -29,7 +29,9 @@ knitr::opts_chunk$set(echo = TRUE)
 #12) stroke: 1 if the patient had a stroke or 0 if not
 #*Note: "Unknown" in smoking_status means that the information is unavailable for this patient
 
+Chunk 1:
 ```{r}
+#Reading the dataset and checking for NA's.
 
 getwd()
 Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
@@ -42,14 +44,113 @@ colSums(is.na(Stroke_dataset))
 
 ```
 
-
+Chunk 2:
 ```{r}
+#Summarising the data and replacing the NA's in the dataset with appropriate values.
 
 summary(Stroke_dataset)
 Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
 Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 
 ```
+
+Chunk 3:
+```{r}
+#Plotting frequency distribution curve.
+
+hist(Stroke_dataset$age,col="lavender",border="black",prob=TRUE,xlab="Age group",main="Distribution of patients")
+lines(density(Stroke_dataset$age),lwd=2,col="red")
+
+```
+
+Chunk 4:
+```{r}
+#Categorizing age in different groups.
+
+Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<11]="0-10"
+Stroke_dataset$age_cat[Stroke_dataset$age>=11 & Stroke_dataset$age<21]="11-20"
+Stroke_dataset$age_cat[Stroke_dataset$age>=21 & Stroke_dataset$age<31]="21-30"
+Stroke_dataset$age_cat[Stroke_dataset$age>=31 & Stroke_dataset$age<41]="31-40"
+Stroke_dataset$age_cat[Stroke_dataset$age>=41 & Stroke_dataset$age<51]="41-50"
+Stroke_dataset$age_cat[Stroke_dataset$age>=51 & Stroke_dataset$age<61]="51-60"
+Stroke_dataset$age_cat[Stroke_dataset$age>=61 & Stroke_dataset$age<71]="61-70"
+Stroke_dataset$age_cat[Stroke_dataset$age>=71 & Stroke_dataset$age<81]="71-80"
+Stroke_dataset$age_cat[Stroke_dataset$age>=81 & Stroke_dataset$age<91]="81-90"
+
+#Plotting different age groups with absence and presence of stroke.
+
+Age_vs_Stroke <- table(Stroke_dataset$age_cat,Stroke_dataset$stroke)
+Age_vs_Stroke
+A <- barplot(Age_vs_Stroke, main="Relation between age and stroke",xlab="Stroke",ylim=range(pretty(c(0,Age_vs_Stroke))),col=rainbow(9),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "Age gruops", x="topright"), beside= TRUE)
+text(x=A,y=Age_vs_Stroke + 20.0,labels=Age_vs_Stroke)
+
+```
+
+Chunk 5:
+```{r}
+#Plotting gender distribution against stroke.
+
+as.factor(Stroke_dataset$gender)
+
+Gender_vs_Stroke <- table(Stroke_dataset$gender,Stroke_dataset$stroke)
+Gender_vs_Stroke
+G <- barplot(Gender_vs_Stroke, main="Relation between gender and stroke", xlab="Stroke",ylim=range(pretty(c(0,Gender_vs_Stroke))),ylab="No. of patients",col=c("aquamarine","forestgreen","lightgreen"), names.arg=c("absent","present"),beside= TRUE, legend=c("Female","Male","Other"),args.legend = list(title = "Gender", x="topright"))
+text(x=G,y=Gender_vs_Stroke + 100.0,labels=Gender_vs_Stroke)
+
+```
+
+Chunk 6:
+```{r}
+#Plotting patients with/without hypertension and stroke.
+
+Hypertension_vs_Stroke <- table(Stroke_dataset$hypertension,Stroke_dataset$stroke)
+Hypertension_vs_Stroke
+HTN <- barplot(Hypertension_vs_Stroke, main="Relation between hypertension and stroke", xlab="Stroke",ylim=range(pretty(c(0,Hypertension_vs_Stroke))),ylab="No. of patients",col=c("springgreen","seagreen"), names.arg=c("absent","present"),beside= TRUE, legend=c("absent","present"),args.legend = list(title = "Hypertension", x="topright"))
+text(x=HTN,y=Hypertension_vs_Stroke + 200.0,labels=Hypertension_vs_Stroke)
+
+```
+
+Chunk 7:
+```{r}
+#Plotting heart disease vs stroke.
+
+Heart_Disease_vs_Stroke <- table(Stroke_dataset$heart_disease,Stroke_dataset$stroke)
+Heart_Disease_vs_Stroke
+HD <- barplot(Heart_Disease_vs_Stroke, main="Relation between heart disease and stroke", xlab="Stroke", ylab="No. of patients",ylim=range(pretty(c(0,Heart_Disease_vs_Stroke))), col=c("lightyellow","yellow"),names.arg=c("absent","present"), legend=c("absent","present"), args.legend = list(title = "Heart disease", x="topright"), beside= TRUE)
+text(x=HD,y=Heart_Disease_vs_Stroke + 200.0,labels=Heart_Disease_vs_Stroke)
+
+```
+
+Chunk 8:
+```{r}
+#Categorizing avg_glucose_level in three groups based on their blood sugar levels as non-diabetic(0), pre-diabetic(1) and diabetic(2)
+
+Stroke_dataset$avg_glucose_level_cat[Stroke_dataset$avg_glucose_level<140] = 0
+Stroke_dataset$avg_glucose_level_cat[Stroke_dataset$avg_glucose_level>=140 & Stroke_dataset$avg_glucose_level<200] = 1
+Stroke_dataset$avg_glucose_level_cat[Stroke_dataset$avg_glucose_level>=200] = 2
+
+#Plotting non-diabetic, pre-diabetic and diabetic groups with absence or presence of stroke.
+
+Diabetes_vs_Stroke <- table(Stroke_dataset$avg_glucose_level_cat,Stroke_dataset$stroke)
+Diabetes_vs_Stroke
+D <- barplot(Diabetes_vs_Stroke, main="Relation between diabetes and stroke", xlab="Stroke", ylab="No. of patients",ylim=range(pretty(c(0,Diabetes_vs_Stroke))), col=c("lavender","violet","purple"),names.arg=c("absent","present"), legend=c("non-diabetic","pre-diabetic","diabetic"), beside= TRUE)
+text(x=D,y=Diabetes_vs_Stroke + 200.0,labels=Diabetes_vs_Stroke)
+
+```
+
+Chunk 9:
+```{r}
+#Plotting relation of smoking and stroke.
+
+as.factor(Stroke_dataset$smoking_status)
+
+Smoking_status_vs_Stroke <- table(Stroke_dataset$smoking_status,Stroke_dataset$stroke)
+Smoking_status_vs_Stroke
+z <- barplot(Smoking_status_vs_Stroke, main="Relation between smoking and stroke", xlab="Stroke",ylab="No. of patients", ylim=range(pretty(c(0,Smoking_status_vs_Stroke))), col=c("lightcyan","lightblue","blue","navyblue"),names.arg=c("absent","present"), legend=c("formerly smoked","never smoked","smokes","unknown"), args.legend = list(title = "Smoking status", x="topright"), beside= TRUE)
+text(x=z,y=Smoking_status_vs_Stroke + 100.0,labels=Smoking_status_vs_Stroke)
+
+```
+
 
 ```{r}
 ###Swarna
