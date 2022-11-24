@@ -420,6 +420,6 @@ summary(strokepredict)
 
 round (exp(coef(strokepredict)),3)
 
-shapiro.test(Stroke$bmi)
+#shapiro.test(Stroke$bmi)
 ```
 
