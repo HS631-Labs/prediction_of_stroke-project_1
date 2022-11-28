@@ -328,6 +328,9 @@ library(caTools)
 library("MASS")
 
 
+#Project Description: Aim to identify the group of population 
+
+
 # Aim to predict if the patient will have stroke
 #Does the patient experience stroke
 # Null Hypothesis: Patients will not have stroke
@@ -338,6 +341,7 @@ library("MASS")
 #outcome variable: Stroke
 #Quantitative variables: age, avg glucose level, bmi, stroke, sus BP, diaBP, BMI, on admit heart rate
 #Categorical: gender, hypertension, heart disease, ever married, work type, residence type, smoking status
+
 
 #Chunk 1: Read the stroke_dataset file and check for NA's
 Stroke <- read.csv("Stroke_dataset.csv",header = TRUE, sep = ",")
@@ -399,7 +403,7 @@ ggplot(data=Stroke,aes(x=logbmi)) + geom_density()
 Stroke$logglucose <- log(Stroke$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
 ggplot(data=Stroke,aes(x=logglucose)) + geom_density()
 
-#Chunk 7: Splitting the data to Train data and test data as the sample size is high
+#Chunk 7: Splitting the data to Train data and test data 
 
 split <- sample.split(Stroke$stroke, SplitRatio = 0.8)
 TrainStroke <- subset(Stroke,split==TRUE)
@@ -421,32 +425,40 @@ summary(strokepredict)
 
 exp(coef(strokepredict))
 
-##
+#Additional safeguards to eliminate independant variables with high correlation amongst themselves
+vif(strokepredict)
+
+#Calculating R2 for Model 1
 ll.null <- strokepredict$null.deviance/-2
 ll.proposed <- strokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(strokepredict$coefficients)-1))
 
+#plotting the model output
 predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke$stroke)
 predicted.data <- predicted.data[order(predicted.data$probability.of.stroke,decreasing=FALSE),]
 predicted.data$rank <- 1:nrow(predicted.data)
 ggplot(data=predicted.data,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
 
+#Improving the model by minimizing AIC value using Step AIC function
 Newstrokepredict <- stepAIC (strokepredict)
 
+#Recalculating R2 and P value for the updated model
 ll.null <- Newstrokepredict$null.deviance/-2
 ll.proposed <- Newstrokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(Newstrokepredict$coefficients)-1))
 
+#plotting the model output
 predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke$stroke)
 predicted.data1 <- predicted.data1[order(predicted.data1$probability.of.stroke,decreasing=FALSE),]
 predicted.data1$rank <- 1:nrow(predicted.data1)
 ggplot(data=predicted.data1,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
 summary(Newstrokepredict)
 
+#confusion matrix for the Model1
 ResultStroke <- predict(strokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
@@ -454,13 +466,15 @@ confmatrix
 
 (confmatrix[[1,1]] + confmatrix[[2,2]])/sum(confmatrix)
 
+#confusion matrix for the Model2
 ResultStroke <- predict(Newstrokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
 confmatrix
 
+#Final interpretation of the model - relative chances of getting a stroke
 round (exp(coef(Newstrokepredict)),3)
 
-#Conclusion:
+#Conclusion: People with history of hypertension as well as people with heart disease are relatively more likely (46% and 39% respectively) to experience stroke.
 ```
 
