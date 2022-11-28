@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #12) stroke: 1 if the patient had a stroke or 0 if not
 #*Note: "Unknown" in smoking_status means that the information is unavailable for this patient
 
-Chunk 1:(Neha-changes in chunk1 to chunk9)
+Chunk 1:(Neha-changes in chunk1 to chunk24)
 ```{r}
 #Reading the dataset and checking for NA's.
 
@@ -81,7 +81,7 @@ Stroke_dataset$age_cat[Stroke_dataset$age>=81 & Stroke_dataset$age<91]="81-90"
 
 Age_vs_Stroke <- table(Stroke_dataset$age_cat,Stroke_dataset$stroke)
 Age_vs_Stroke
-A <- barplot(Age_vs_Stroke, main="Relation between age and stroke",xlab="Stroke",ylim=range(pretty(c(0,Age_vs_Stroke))),col=rainbow(9),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "Age gruops", x="topright"), beside= TRUE)
+A <- barplot(Age_vs_Stroke, main="Relation between age and stroke",xlab="Stroke",ylim=range(pretty(c(0,Age_vs_Stroke))),col=rainbow(9),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "Age groups", x="topright"), beside= TRUE)
 text(x=A,y=Age_vs_Stroke + 20.0,labels=Age_vs_Stroke)
 
 ```
@@ -148,6 +148,159 @@ Smoking_status_vs_Stroke <- table(Stroke_dataset$smoking_status,Stroke_dataset$s
 Smoking_status_vs_Stroke
 z <- barplot(Smoking_status_vs_Stroke, main="Relation between smoking and stroke", xlab="Stroke",ylab="No. of patients", ylim=range(pretty(c(0,Smoking_status_vs_Stroke))), col=c("lightcyan","lightblue","blue","navyblue"),names.arg=c("absent","present"), legend=c("formerly smoked","never smoked","smokes","unknown"), args.legend = list(title = "Smoking status", x="topright"), beside= TRUE)
 text(x=z,y=Smoking_status_vs_Stroke + 100.0,labels=Smoking_status_vs_Stroke)
+
+```
+Chunk 10:
+```{r}
+#Plotting relation between marriage status and stroke.
+
+Stroke_dataset$ever_married <- as.factor(Stroke_dataset$ever_married)
+Stroke_dataset$ever_married <- as.numeric(Stroke_dataset$ever_married)
+
+Marriage_vs_Stroke <- table(Stroke_dataset$ever_married,Stroke_dataset$stroke)
+Marriage_vs_Stroke
+M <- barplot(Marriage_vs_Stroke, main="Relation between marriage status and stroke", xlab="Stroke", ylab="No. of patients",ylim=range(pretty(c(0,Marriage_vs_Stroke))), col=c("red","yellow"),names.arg=c("absent","present"), legend=c("No","Yes"), args.legend = list(title = "Ever Married", x="topright"), beside= TRUE)
+text(x=M,y=Marriage_vs_Stroke + 200.0,labels=Marriage_vs_Stroke)
+
+```
+Chunk 11:
+```{r}
+#Plotting relation between working status and stroke.
+
+Stroke_dataset$work_type <- as.factor(Stroke_dataset$work_type)
+Stroke_dataset$work_type <- as.numeric(Stroke_dataset$work_type)
+
+Work_type_vs_Stroke <- table(Stroke_dataset$work_type,Stroke_dataset$stroke)
+Work_type_vs_Stroke
+WT <- barplot(Work_type_vs_Stroke, main="Relation between working status and stroke", xlab="Stroke", ylab="No. of patients",ylim=range(pretty(c(0,Work_type_vs_Stroke))), col=rainbow(5),names.arg=c("absent","present"), legend=c("child","government job","never worked","private","self-employed"), args.legend = list(title = "Working status", x="topright"), beside= TRUE)
+text(x=WT,y=Work_type_vs_Stroke + 100.0,labels=Work_type_vs_Stroke)
+
+```
+
+Chunk 12:
+```{r}
+#Plotting relation between residence type and stroke.
+
+Stroke_dataset$Residence_type <- as.factor(Stroke_dataset$Residence_type)
+Stroke_dataset$Residence_type <- as.numeric(Stroke_dataset$Residence_type)
+
+Residence_vs_Stroke <- table(Stroke_dataset$Residence_type,Stroke_dataset$stroke)
+Residence_vs_Stroke
+R <- barplot(Residence_vs_Stroke, main="Relation between residence type and stroke", xlab="Stroke", ylab="No. of patients",ylim=range(pretty(c(0,Residence_vs_Stroke))), col=c("grey","black"),names.arg=c("absent","present"), legend=c("Rural","Urban"), args.legend = list(title = "Residence", x="topright"), beside= TRUE)
+text(x=R,y=Residence_vs_Stroke + 200.0,labels=Residence_vs_Stroke)
+
+```
+
+Chunk 13:
+```{r}
+#Plotting relation between bmi and stroke.
+
+Stroke_dataset_bmi_adults <- Stroke_dataset[Stroke_dataset$age>20 & Stroke_dataset$age<=85,]
+Stroke_dataset_bmi_adults
+
+Stroke_dataset_bmi_adults$bmi_cat[Stroke_dataset_bmi_adults$bmi<18.5]="underweight"
+Stroke_dataset_bmi_adults$bmi_cat[Stroke_dataset_bmi_adults$bmi>=18.5 & Stroke_dataset_bmi_adults$bmi<25]="healthy"
+Stroke_dataset_bmi_adults$bmi_cat[Stroke_dataset_bmi_adults$bmi>=25 & Stroke_dataset_bmi_adults$bmi<30]="overweight"
+Stroke_dataset_bmi_adults$bmi_cat[Stroke_dataset_bmi_adults$bmi>=30]="obese"
+
+BMI_vs_Stroke <- table(Stroke_dataset_bmi_adults$bmi_cat,Stroke_dataset_bmi_adults$stroke)
+BMI_vs_Stroke
+bmi <- barplot(BMI_vs_Stroke, main="Relation between BMI and stroke",xlab="Stroke",ylim=range(pretty(c(0,BMI_vs_Stroke))),col=c("pink","orange","red","yellow"),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "BMI", x="topright"), beside= TRUE)
+text(x=bmi,y=BMI_vs_Stroke + 100.0,labels=BMI_vs_Stroke)
+
+```
+Chunk 14:
+```{r}
+#Applying chi-square test to find an association between different categorical independent variables and the dependent variable(stroke).
+#Gender vs Stroke
+
+chisq.test(Stroke_dataset$gender,Stroke_dataset$stroke)
+
+```
+
+Chunk 15:
+```{r}
+#Hypertension vs Stroke
+chisq.test(Stroke_dataset$hypertension,Stroke_dataset$stroke)
+```
+
+Chunk 16:
+```{r}
+#Heart disease vs Stroke
+chisq.test(Stroke_dataset$heart_disease,Stroke_dataset$stroke)
+```
+
+Chunk 17:
+```{r}
+#Marriage status vs Stroke
+chisq.test(Stroke_dataset$ever_married,Stroke_dataset$stroke)
+```
+
+Chunk 18:
+```{r}
+#Working status vs Stroke
+chisq.test(Stroke_dataset$work_type,Stroke_dataset$stroke)
+```
+
+Chunk 19:
+```{r}
+#Residence type vs Stroke
+chisq.test(Stroke_dataset$Residence_type,Stroke_dataset$stroke)
+```
+
+Chunk 20:
+```{r}
+#Smoking status vs Stroke
+chisq.test(Stroke_dataset$smoking_status,Stroke_dataset$stroke)
+```
+
+Chunk 21:
+```{r}
+#Finding correlation between different continuous independent variables and the dependent variable(stroke).
+#Age vs Stroke
+cor.test(Stroke_dataset$age,Stroke_dataset$stroke)
+```
+
+Chunk 22:
+```{r}
+#BMI vs Stroke
+cor.test(Stroke_dataset$bmi,Stroke_dataset$stroke)
+```
+
+Chunk 23:
+```{r}
+#Diabetes vs Stroke
+cor.test(Stroke_dataset$avg_glucose_level,Stroke_dataset$stroke)
+```
+
+Chunk 24:
+```{r}
+#Correlation matrix
+
+Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
+colSums(is.na(Stroke_dataset))
+Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
+Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
+
+Stroke_dataset$gender <- as.factor(Stroke_dataset$gender)
+Stroke_dataset$ever_married <- as.factor(Stroke_dataset$ever_married)
+Stroke_dataset$work_type <- as.factor(Stroke_dataset$work_type)
+Stroke_dataset$Residence_type <- as.factor(Stroke_dataset$Residence_type)
+Stroke_dataset$smoking_status <- as.factor(Stroke_dataset$smoking_status)
+
+Stroke_dataset$smoking_status <- as.numeric(Stroke_dataset$smoking_status)
+Stroke_dataset$gender <- as.numeric(Stroke_dataset$gender) 
+Stroke_dataset$ever_married <- as.numeric(Stroke_dataset$ever_married)
+Stroke_dataset$work_type <- as.numeric(Stroke_dataset$work_type)
+Stroke_dataset$Residence_type <- as.numeric(Stroke_dataset$Residence_type)
+
+any(is.na(Stroke_dataset))
+
+rcorr(as.matrix(Stroke_dataset[,2:12]))
+
+Matrix_Stroke <- cor(Stroke_dataset[,2:12])
+Matrix_Stroke
+corrplot(Matrix_Stroke, method="circle",type="lower",tl.col="black")
 
 ```
 
