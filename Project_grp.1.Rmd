@@ -460,5 +460,7 @@ confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke
 confmatrix
 
 round (exp(coef(Newstrokepredict)),3)
+
+#Conclusion:
 ```
 
