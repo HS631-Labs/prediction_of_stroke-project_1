@@ -48,7 +48,7 @@ library(Hmisc)
 library(pwr)
 library(car)
 library(caTools)
-library("MASS")
+library(MASS)
 
 ```
 
@@ -56,9 +56,10 @@ Chunk 2:
 ```{r}
 #Reading the dataset and checking for NA's.
 
-getwd()
-Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
+#getwd()
+#Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF #STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
 
+Stroke_dataset <- read.csv("Stroke_dataset.csv",header = TRUE, sep = ",")
 head(Stroke_dataset)
 str(Stroke_dataset)
 
@@ -70,7 +71,7 @@ colSums(is.na(Stroke_dataset))
 Chunk 3:
 ```{r}
 #Summarising the data and replacing the NA's in the dataset with appropriate values.
-
+Stroke <- Stroke[,-15]
 summary(Stroke_dataset)
 Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
 Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
@@ -460,8 +461,11 @@ Chunk 36:
 ```{r}
 #Applying Logistic regression to all independent variables.
 
-strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate + logbmi + logglucose, data = Stroke_dataset, family="binomial")
+strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate, data = Stroke, family="binomial")
 summary(strokepredict)
+plot(strokepredict) # Review cook's distance plot to identify outlier patients. In this case, there are no outlier patients
+
+rev(sort(round(cooks.distance(strokepredict),2))) # Another way to identify outliers by comparing numerical values of Cook's distance for each patient and sorting them in descending order. In this specific case, there are no outliers.
 
 exp(coef(strokepredict))
 
@@ -469,7 +473,7 @@ exp(coef(strokepredict))
 
 Chunk 37:
 ```{r}
-#Additional safeguards to eliminate independent variables with high correlation amongst themselves
+#Additional safeguards to eliminate independant variables with high correlation amongst themselves
 
 vif(strokepredict)
 
@@ -491,7 +495,7 @@ Chunk 39:
 ```{r}
 #Plotting the model output
 
-predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke_dataset$stroke)
+predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke$stroke)
 predicted.data <- predicted.data[order(predicted.data$probability.of.stroke,decreasing=FALSE),]
 predicted.data$rank <- 1:nrow(predicted.data)
 ggplot(data=predicted.data,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
@@ -500,67 +504,94 @@ ggplot(data=predicted.data,aes(x=rank,y=probability.of.stroke))+geom_point(aes(c
 
 Chunk 40:
 ```{r}
-#Improving the model by minimizing AIC value using Step AIC function
-
-Newstrokepredict <- stepAIC (strokepredict)
-
+#Model 2
+#Interaction effects of variables where it makes logical sense. However, none of the co-efficients of interaction variables are significant.
+strokepredict2 <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate +age*hypertension + age*heart_disease + hypertension*heart_disease + heart_disease*smoking_status + hypertension*OnAdmit_heartRate + age*avg_glucose_level, data = Stroke, family="binomial")
+summary(strokepredict2)
 ```
 
 Chunk 41:
 ```{r}
-#Recalculating R2 and P value for the updated model
+#Model 3
+#Hence, best fit model is derived by removing all interaction variabbles as well as variables from the first model that are not significant
+strokepredict3 <- glm(stroke ~ age + hypertension + avg_glucose_level, data = Stroke, family="binomial")
+summary(strokepredict3)
+```
 
+Chunk 42:
+```{r}
+#Model 4
+#Improving the model by minimizing AIC value using Step AIC function. This is another method of optimizing best-fit model
+Newstrokepredict <- stepAIC (strokepredict)
+summary(Newstrokepredict)
+
+anova(strokepredict, strokepredict2, strokepredict3, Newstrokepredict, test = "Chisq")
+```
+
+Chunk 43:
+```{r}
+#Recalculating R2 and P value for the updated model
 ll.null <- Newstrokepredict$null.deviance/-2
 ll.proposed <- Newstrokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(Newstrokepredict$coefficients)-1))
-
 ```
 
-Chunk 42:
+Chunk 44:
 ```{r}
-#Plotting the model output
-
-predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke_dataset$stroke)
+#plotting the model output
+predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke$stroke)
 predicted.data1 <- predicted.data1[order(predicted.data1$probability.of.stroke,decreasing=FALSE),]
 predicted.data1$rank <- 1:nrow(predicted.data1)
 ggplot(data=predicted.data1,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
 summary(Newstrokepredict)
-
 ```
 
-Chunk 43:
+Chunk 45:
 ```{r}
-#Confusion matrix for the Model1
-
+#confusion matrix for the Model1
 ResultStroke <- predict(strokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
 confmatrix
 
 (confmatrix[[1,1]] + confmatrix[[2,2]])/sum(confmatrix)
-
 ```
 
-Chunk 44:
+Chunk 46:
 ```{r}
-#Confusion matrix for the Model2
-
+#confusion matrix for the Model2
 ResultStroke <- predict(Newstrokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
 confmatrix
+```
+
+Chunk 47:
+```{r}
+#Final interpretation of the model - relative chances of getting a stroke
+round (exp(coef(Newstrokepredict)),3)
 
 ```
 
-Chunk 45:
+Chunk 48:
 ```{r}
-#Final interpretation of the model - relative chances of getting a stroke.
+#Calculating Rsquares using logisticpsuedoR2 formula. Output is similar to the R2 we computed earlier in the model
+dev <- Newstrokepredict$deviance
+nullDev <- Newstrokepredict$null.deviance
+modelN <- length(Newstrokepredict$fitted.values)
+R.l <- 1 - dev/nullDev
+R.cs <- 1 - exp(-(nullDev - dev)/modelN)
+R.n <- R.cs/(1 - (exp(-(nullDev/modelN))))
+round(R.l,3)
+round(R.cs,3)
+round(R.n,3)
 
-round (exp(coef(Newstrokepredict)),3)
+```
 
+Chunk 49:
+```{r}
 #Conclusion: People with history of hypertension as well as people with heart disease are relatively more likely (46% and 39% respectively) to experience stroke.
-##
 ```
 
