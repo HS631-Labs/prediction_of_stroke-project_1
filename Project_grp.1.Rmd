@@ -1,6 +1,6 @@
 ---
 title: "Prediction of stroke"
-output: html_document
+output: powerpoint_presentation
 date: "2022-11-18"
 ---
 
@@ -29,7 +29,30 @@ knitr::opts_chunk$set(echo = TRUE)
 #12) stroke: 1 if the patient had a stroke or 0 if not
 #*Note: "Unknown" in smoking_status means that the information is unavailable for this patient
 
-Chunk 1:(Neha-changes in chunk1 to chunk24)
+
+Chunk 1:
+```{r}
+
+library(plotly)
+library(ggplot2)
+library(ggcorrplot)
+library(ggpubr)
+library(dplyr)
+library(VennDiagram)
+library(ggbeeswarm)
+library(pwr)
+library(psych)
+library(pastecs)
+library(ggm)
+library(Hmisc)
+library(pwr)
+library(car)
+library(caTools)
+library("MASS")
+
+```
+
+Chunk 2:
 ```{r}
 #Reading the dataset and checking for NA's.
 
@@ -44,7 +67,7 @@ colSums(is.na(Stroke_dataset))
 
 ```
 
-Chunk 2:
+Chunk 3:
 ```{r}
 #Summarising the data and replacing the NA's in the dataset with appropriate values.
 
@@ -54,39 +77,84 @@ Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 
 ```
 
-Chunk 3:
+Chunk 4:
 ```{r}
-#Plotting frequency distribution curve.
+###########
+Stroke_dataset$gender[Stroke_dataset$gender=="other"] <- NA
+summary(Stroke_dataset$gender)
+table(Stroke_dataset$gender)
+Stroke <- Stroke_dataset[!(is.na(Stroke_dataset$gender)),]
+summary(Stroke_dataset$gender)
+table(Stroke_dataset$gender)
+```
+
+Chunk 5:
+```{r}
+#Plotting frequency distribution curve using age.
 
 hist(Stroke_dataset$age,col="lavender",border="black",prob=TRUE,xlab="Age group",main="Distribution of patients")
 lines(density(Stroke_dataset$age),lwd=2,col="red")
 
 ```
 
-Chunk 4:
+Chunk 6:
+```{r}
+#Plotting frequency distribution curve using BMI.
+
+hist(Stroke_dataset$bmi,col="light blue",border="black",prob=TRUE,xlab="BMI",main="Distribution of patients")
+lines(density(Stroke_dataset$bmi),lwd=2,col="red")
+
+```
+
+Chunk 7:
+```{r}
+#Log Transformation for BMI.
+
+Stroke_dataset$logbmi <- log(Stroke_dataset$bmi)
+hist(Stroke_dataset$logbmi,col="light blue",border="black",prob=TRUE,xlab="BMI",main="Distribution of patients")
+lines(density(Stroke_dataset$logbmi),lwd=2,col="red")
+#ggplot(data=Stroke_dataset,aes(x=logbmi)) + geom_density()
+
+```
+
+Chunk 8:
+```{r}
+#Plotting frequency distribution curve using average blood glucose levels.
+
+hist(Stroke_dataset$avg_glucose_level,col="light green",border="black",prob=TRUE,xlab="Average Blood Glucose levels",main="Distribution of patients")
+lines(density(Stroke_dataset$avg_glucose_level),lwd=2,col="red")
+
+```
+
+Chunk 9:
+```{r}
+#Log Transformation for average glucose levels.
+
+Stroke_dataset$logglucose <- log(Stroke_dataset$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
+hist(Stroke_dataset$logglucose,col="light green",border="black",prob=TRUE,xlab="BMI",main="Distribution of patients")
+lines(density(Stroke_dataset$logglucose),lwd=2,col="red")
+#ggplot(data=Stroke_dataset,aes(x=logglucose)) + geom_density()
+
+```
+
+
+Chunk 10:
 ```{r}
 #Categorizing age in different groups.
 
-Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<11]="0-10"
-Stroke_dataset$age_cat[Stroke_dataset$age>=11 & Stroke_dataset$age<21]="11-20"
-Stroke_dataset$age_cat[Stroke_dataset$age>=21 & Stroke_dataset$age<31]="21-30"
-Stroke_dataset$age_cat[Stroke_dataset$age>=31 & Stroke_dataset$age<41]="31-40"
-Stroke_dataset$age_cat[Stroke_dataset$age>=41 & Stroke_dataset$age<51]="41-50"
-Stroke_dataset$age_cat[Stroke_dataset$age>=51 & Stroke_dataset$age<61]="51-60"
-Stroke_dataset$age_cat[Stroke_dataset$age>=61 & Stroke_dataset$age<71]="61-70"
-Stroke_dataset$age_cat[Stroke_dataset$age>=71 & Stroke_dataset$age<81]="71-80"
-Stroke_dataset$age_cat[Stroke_dataset$age>=81 & Stroke_dataset$age<91]="81-90"
+Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<46]="0-45"
+Stroke_dataset$age_cat[Stroke_dataset$age>=46 & Stroke_dataset$age<91]="46-90"
 
 #Plotting different age groups with absence and presence of stroke.
 
 Age_vs_Stroke <- table(Stroke_dataset$age_cat,Stroke_dataset$stroke)
 Age_vs_Stroke
-A <- barplot(Age_vs_Stroke, main="Relation between age and stroke",xlab="Stroke",ylim=range(pretty(c(0,Age_vs_Stroke))),col=rainbow(9),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "Age groups", x="topright"), beside= TRUE)
-text(x=A,y=Age_vs_Stroke + 20.0,labels=Age_vs_Stroke)
+A <- barplot(Age_vs_Stroke, main="Relation between age and stroke",xlab="Stroke",ylim=range(pretty(c(0,Age_vs_Stroke))),col=c("magenta","pink"),names.arg=c("absent","present"), legend=TRUE , args.legend = list(title = "Age groups", x="topright"), beside= TRUE)
+text(x=A,y=Age_vs_Stroke + 100.0,labels=Age_vs_Stroke)
 
 ```
 
-Chunk 5:
+Chunk 11:
 ```{r}
 #Plotting gender distribution against stroke.
 
@@ -94,12 +162,12 @@ as.factor(Stroke_dataset$gender)
 
 Gender_vs_Stroke <- table(Stroke_dataset$gender,Stroke_dataset$stroke)
 Gender_vs_Stroke
-G <- barplot(Gender_vs_Stroke, main="Relation between gender and stroke", xlab="Stroke",ylim=range(pretty(c(0,Gender_vs_Stroke))),ylab="No. of patients",col=c("aquamarine","forestgreen","lightgreen"), names.arg=c("absent","present"),beside= TRUE, legend=c("Female","Male","Other"),args.legend = list(title = "Gender", x="topright"))
+G <- barplot(Gender_vs_Stroke, main="Relation between gender and stroke", xlab="Stroke",ylim=range(pretty(c(0,Gender_vs_Stroke))),ylab="No. of patients",col=c("aquamarine","forestgreen"), names.arg=c("absent","present"),beside= TRUE, legend=c("Female","Male"),args.legend = list(title = "Gender", x="topright"))
 text(x=G,y=Gender_vs_Stroke + 100.0,labels=Gender_vs_Stroke)
 
 ```
 
-Chunk 6:
+Chunk 12:
 ```{r}
 #Plotting patients with/without hypertension and stroke.
 
@@ -110,7 +178,7 @@ text(x=HTN,y=Hypertension_vs_Stroke + 200.0,labels=Hypertension_vs_Stroke)
 
 ```
 
-Chunk 7:
+Chunk 13:
 ```{r}
 #Plotting heart disease vs stroke.
 
@@ -121,7 +189,7 @@ text(x=HD,y=Heart_Disease_vs_Stroke + 200.0,labels=Heart_Disease_vs_Stroke)
 
 ```
 
-Chunk 8:
+Chunk 14:
 ```{r}
 #Categorizing avg_glucose_level in three groups based on their blood sugar levels as non-diabetic(0), pre-diabetic(1) and diabetic(2)
 
@@ -138,7 +206,7 @@ text(x=D,y=Diabetes_vs_Stroke + 200.0,labels=Diabetes_vs_Stroke)
 
 ```
 
-Chunk 9:
+Chunk 15:
 ```{r}
 #Plotting relation of smoking and stroke.
 
@@ -150,7 +218,8 @@ z <- barplot(Smoking_status_vs_Stroke, main="Relation between smoking and stroke
 text(x=z,y=Smoking_status_vs_Stroke + 100.0,labels=Smoking_status_vs_Stroke)
 
 ```
-Chunk 10:
+
+Chunk 16:
 ```{r}
 #Plotting relation between marriage status and stroke.
 
@@ -163,7 +232,8 @@ M <- barplot(Marriage_vs_Stroke, main="Relation between marriage status and stro
 text(x=M,y=Marriage_vs_Stroke + 200.0,labels=Marriage_vs_Stroke)
 
 ```
-Chunk 11:
+
+Chunk 17:
 ```{r}
 #Plotting relation between working status and stroke.
 
@@ -177,7 +247,7 @@ text(x=WT,y=Work_type_vs_Stroke + 100.0,labels=Work_type_vs_Stroke)
 
 ```
 
-Chunk 12:
+Chunk 18:
 ```{r}
 #Plotting relation between residence type and stroke.
 
@@ -191,7 +261,7 @@ text(x=R,y=Residence_vs_Stroke + 200.0,labels=Residence_vs_Stroke)
 
 ```
 
-Chunk 13:
+Chunk 19:
 ```{r}
 #Plotting relation between bmi and stroke.
 
@@ -209,7 +279,8 @@ bmi <- barplot(BMI_vs_Stroke, main="Relation between BMI and stroke",xlab="Strok
 text(x=bmi,y=BMI_vs_Stroke + 100.0,labels=BMI_vs_Stroke)
 
 ```
-Chunk 14:
+
+Chunk 20:
 ```{r}
 #Applying chi-square test to find an association between different categorical independent variables and the dependent variable(stroke).
 #Gender vs Stroke
@@ -218,62 +289,80 @@ chisq.test(Stroke_dataset$gender,Stroke_dataset$stroke)
 
 ```
 
-Chunk 15:
-```{r}
-#Hypertension vs Stroke
-chisq.test(Stroke_dataset$hypertension,Stroke_dataset$stroke)
-```
-
-Chunk 16:
-```{r}
-#Heart disease vs Stroke
-chisq.test(Stroke_dataset$heart_disease,Stroke_dataset$stroke)
-```
-
-Chunk 17:
-```{r}
-#Marriage status vs Stroke
-chisq.test(Stroke_dataset$ever_married,Stroke_dataset$stroke)
-```
-
-Chunk 18:
-```{r}
-#Working status vs Stroke
-chisq.test(Stroke_dataset$work_type,Stroke_dataset$stroke)
-```
-
-Chunk 19:
-```{r}
-#Residence type vs Stroke
-chisq.test(Stroke_dataset$Residence_type,Stroke_dataset$stroke)
-```
-
-Chunk 20:
-```{r}
-#Smoking status vs Stroke
-chisq.test(Stroke_dataset$smoking_status,Stroke_dataset$stroke)
-```
-
 Chunk 21:
 ```{r}
-#Finding correlation between different continuous independent variables and the dependent variable(stroke).
-#Age vs Stroke
-cor.test(Stroke_dataset$age,Stroke_dataset$stroke)
+#Hypertension vs Stroke
+
+chisq.test(Stroke_dataset$hypertension,Stroke_dataset$stroke)
+
 ```
 
 Chunk 22:
 ```{r}
-#BMI vs Stroke
-cor.test(Stroke_dataset$bmi,Stroke_dataset$stroke)
+#Heart disease vs Stroke
+
+chisq.test(Stroke_dataset$heart_disease,Stroke_dataset$stroke)
+
 ```
 
 Chunk 23:
 ```{r}
-#Diabetes vs Stroke
-cor.test(Stroke_dataset$avg_glucose_level,Stroke_dataset$stroke)
+#Marriage status vs Stroke
+
+chisq.test(Stroke_dataset$ever_married,Stroke_dataset$stroke)
+
 ```
 
 Chunk 24:
+```{r}
+#Working status vs Stroke
+
+chisq.test(Stroke_dataset$work_type,Stroke_dataset$stroke)
+
+```
+
+Chunk 25:
+```{r}
+#Residence type vs Stroke
+
+chisq.test(Stroke_dataset$Residence_type,Stroke_dataset$stroke)
+
+```
+
+Chunk 26:
+```{r}
+#Smoking status vs Stroke
+
+chisq.test(Stroke_dataset$smoking_status,Stroke_dataset$stroke)
+
+```
+
+Chunk 27:
+```{r}
+#Finding correlation between different continuous independent variables and the dependent variable(stroke).
+#Age vs Stroke
+
+cor.test(Stroke_dataset$age,Stroke_dataset$stroke)
+
+```
+
+Chunk 28:
+```{r}
+#BMI vs Stroke
+
+cor.test(Stroke_dataset$bmi,Stroke_dataset$stroke)
+
+```
+
+Chunk 29:
+```{r}
+#Diabetes vs Stroke
+
+cor.test(Stroke_dataset$avg_glucose_level,Stroke_dataset$stroke)
+
+```
+
+Chunk 30:
 ```{r}
 #Correlation matrix
 
@@ -304,161 +393,147 @@ corrplot(Matrix_Stroke, method="circle",type="lower",tl.col="black")
 
 ```
 
-
+Chunk 31:
 ```{r}
-###Swarna(updated)
-install.packages("caTools")
-install.packages("ggpubr")
-install.packages("ggcorrplot")
-library(plotly)
-library(ggplot2)
-library(ggcorrplot)
-library(ggpubr)
-library(dplyr)
-library(VennDiagram)
-library(ggbeeswarm)
-library(pwr)
-library(psych)
-library(pastecs)
-library(ggm)
-library(Hmisc)
-library(pwr)
-library(car)
-library(caTools)
-library("MASS")
-
-
-#Project Description: Aim to identify the group of population 
-
-
-# Aim to predict if the patient will have stroke
-#Does the patient experience stroke
-# Null Hypothesis: Patients will not have stroke
-#Alternative hypothesis: Patients will have stroke 
-#Methodology: Use Multiple logistic regression to predict
-#Dependent variable: Stroke
-#Independent variables: 10 independent variables
-#outcome variable: Stroke
-#Quantitative variables: age, avg glucose level, bmi, stroke, sus BP, diaBP, BMI, on admit heart rate
-#Categorical: gender, hypertension, heart disease, ever married, work type, residence type, smoking status
-
-
-#Chunk 1: Read the stroke_dataset file and check for NA's
-Stroke <- read.csv("Stroke_dataset.csv",header = TRUE, sep = ",")
-any(is.na(Stroke))
-Stroke[is.na(Stroke)] <- 0
-summary(Stroke)
-str(Stroke)
-
-
-#Chunk 2: Replace the NA values
-Stroke <- Stroke[,-15]
-
-Stroke$bmi[Stroke$bmi == 0] <- runif(sum(Stroke$bmi == 0), min = 22.9, max = 32.8)
-
-#Chunk 3: 
-Stroke[Stroke$gender == "other",]$gender <- NA
-summary(Stroke$gender)
-Stroke <- Stroke[!(is.na(Stroke$gender)),]
-summary(Stroke$gender)
-
-#Chunk 4: Converting stroke data to Binomial variables
-Stroke$gender <- as.factor(Stroke$gender)
-Stroke$ever_married <- as.factor(Stroke$ever_married)
-Stroke$work_type <- as.factor(Stroke$work_type)
-Stroke$Residence_type <- as.factor(Stroke$Residence_type)
-Stroke$smoking_status <- as.factor(Stroke$smoking_status)
-Stroke$hypertension <- as.factor(Stroke$hypertension)
-Stroke$heart_disease <- as.factor(Stroke$heart_disease)
-Stroke$stroke <- as.factor(Stroke$stroke)
-
-summary(Stroke)
-
-#Chunk 5: Plotting the variables
+#Plotting the different variables
 #Plot the axis
-plot(Stroke$hypertension,Stroke$age)
-plot(Stroke$heart_disease,Stroke$age)
-plot(Stroke$stroke,Stroke$age)
-plot(Stroke$stroke,Stroke$OnAdmit_heartRate)
 
-#plotting for all continuous variables
-ggplot(data=Stroke,aes(x=age)) + geom_density()
-ggplot(data=Stroke,aes(x=bmi)) + geom_density() #####
-ggplot(data=Stroke,aes(x=avg_glucose_level)) + geom_density()####
-ggplot(data=Stroke,aes(x=sysBP)) + geom_density()
-ggplot(data=Stroke,aes(x=diaBP)) + geom_density()
-ggplot(data=Stroke,aes(x=OnAdmit_heartRate)) + geom_density()
+plot(Stroke_dataset$hypertension,Stroke_dataset$age,main="Presence/Absence of Hypertension \nbased on age",xlab="Hypertension",ylab="Age")
+plot(Stroke_dataset$heart_disease,Stroke_dataset$age,main="Presence/Absence of Heart disease \nbased on age",xlab="Heart disease",ylab="Age")
+plot(Stroke_dataset$stroke,Stroke_dataset$age,main="Presence/Absence of Stroke \nbased on age",xlab="Stroke",ylab="Age")
+plot(Stroke_dataset$stroke,Stroke_dataset$OnAdmit_heartRate,main="Presence/Absence of Stroke \nbased on heart rate",xlab="Stroke",ylab="Heart rate")
 
+```
+Chunk 32:
+```{r}
+#Plotting all continuous variables.
+
+ggplot(data=Stroke_dataset,aes(x=age)) + geom_density() + ggtitle("Plot of Age") +
+  xlab("Age (yrs)") 
+ggplot(data=Stroke_dataset,aes(x=bmi)) + geom_density() + ggtitle("Plot of BMI") +
+  xlab("BMI") 
+ggplot(data=Stroke_dataset,aes(x=avg_glucose_level)) + geom_density() + ggtitle("Plot of Average Blood Glucose Levels") +
+  xlab("Age (mg/dl)") 
+ggplot(data=Stroke_dataset,aes(x=sysBP)) + geom_density() + ggtitle("Plot of Systolic BP") +
+  xlab("Systolic BP (mmHg)") 
+ggplot(data=Stroke_dataset,aes(x=diaBP)) + geom_density() + ggtitle("Plot of Diastolic BP") +
+  xlab("Diastolic BP (mmHg)") 
+ggplot(data=Stroke_dataset,aes(x=OnAdmit_heartRate)) + geom_density() + ggtitle("Plot of Heart Rate on admission") +
+  xlab("Heart rate (beats/min)") 
+
+```
+Chunk 33:
+```{r}
+
+Stroke_dataset$logbmi <- log(Stroke_dataset$bmi)
+Stroke_dataset$logglucose <- log(Stroke_dataset$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
+#######
 #plotting for combination nominal variables (smoking staus, bmi)
-ggplot(data=Stroke,aes(x=smoking_status,fill=stroke)) + geom_histogram(stat="count")
-ggplot(data=Stroke,aes(x=bmi,fill=stroke)) + geom_density()
+ggplot(data=Stroke_dataset,aes(x=smoking_status,fill=stroke)) + geom_histogram(stat="count")
+ggplot(data=Stroke_dataset,aes(x=bmi,fill=stroke)) + geom_density()
 
+```
 
+Chunk 34:
+```{r}
+#Splitting the data to Train data and test data 
 
-
-#Chunk 6: Log Transformation
-Stroke$logbmi <- log(Stroke$bmi)
-ggplot(data=Stroke,aes(x=logbmi)) + geom_density()
-
-Stroke$logglucose <- log(Stroke$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
-ggplot(data=Stroke,aes(x=logglucose)) + geom_density()
-
-#Chunk 7: Splitting the data to Train data and test data 
-
-split <- sample.split(Stroke$stroke, SplitRatio = 0.8)
-TrainStroke <- subset(Stroke,split==TRUE)
-TestStroke <- subset(Stroke,split==FALSE)
+split <- sample.split(Stroke_dataset$stroke, SplitRatio = 0.8)
+TrainStroke <- subset(Stroke_dataset,split==TRUE)
+TestStroke <- subset(Stroke_dataset,split==FALSE)
 
 stat.desc(TrainStroke, basic = FALSE, norm = TRUE)
 stat.desc(TestStroke, basic = FALSE, norm = TRUE)
+```
 
-#Chunk 8: Identifying correlation
-corr = round(cor(Stroke[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
+Chunk 35:
+```{r}
+########
+#Identifying correlation
+corr = round(cor(Stroke_dataset[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
 corr
 #none correlated
 ggcorrplot(corr,hc.order=TRUE)
 
-#Chunk 9: Applying Logistic regression
+```
+Chunk 36:
+```{r}
+#Applying Logistic regression to all independent variables.
 
-strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate + logbmi + logglucose, data = Stroke, family="binomial")
+strokepredict <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate + logbmi + logglucose, data = Stroke_dataset, family="binomial")
 summary(strokepredict)
 
 exp(coef(strokepredict))
 
-#Additional safeguards to eliminate independant variables with high correlation amongst themselves
+```
+
+Chunk 37:
+```{r}
+#Additional safeguards to eliminate independent variables with high correlation amongst themselves
+
 vif(strokepredict)
 
+```
+
+Chunk 38:
+```{r}
 #Calculating R2 for Model 1
+
 ll.null <- strokepredict$null.deviance/-2
 ll.proposed <- strokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(strokepredict$coefficients)-1))
 
-#plotting the model output
-predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke$stroke)
+```
+
+Chunk 39:
+```{r}
+#Plotting the model output
+
+predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke_dataset$stroke)
 predicted.data <- predicted.data[order(predicted.data$probability.of.stroke,decreasing=FALSE),]
 predicted.data$rank <- 1:nrow(predicted.data)
 ggplot(data=predicted.data,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
 
+```
+
+Chunk 40:
+```{r}
 #Improving the model by minimizing AIC value using Step AIC function
+
 Newstrokepredict <- stepAIC (strokepredict)
 
+```
+
+Chunk 41:
+```{r}
 #Recalculating R2 and P value for the updated model
+
 ll.null <- Newstrokepredict$null.deviance/-2
 ll.proposed <- Newstrokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(Newstrokepredict$coefficients)-1))
 
-#plotting the model output
-predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke$stroke)
+```
+
+Chunk 42:
+```{r}
+#Plotting the model output
+
+predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke_dataset$stroke)
 predicted.data1 <- predicted.data1[order(predicted.data1$probability.of.stroke,decreasing=FALSE),]
 predicted.data1$rank <- 1:nrow(predicted.data1)
 ggplot(data=predicted.data1,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
 summary(Newstrokepredict)
 
-#confusion matrix for the Model1
+```
+
+Chunk 43:
+```{r}
+#Confusion matrix for the Model1
+
 ResultStroke <- predict(strokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
@@ -466,15 +541,26 @@ confmatrix
 
 (confmatrix[[1,1]] + confmatrix[[2,2]])/sum(confmatrix)
 
-#confusion matrix for the Model2
+```
+
+Chunk 44:
+```{r}
+#Confusion matrix for the Model2
+
 ResultStroke <- predict(Newstrokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
 confmatrix
 
-#Final interpretation of the model - relative chances of getting a stroke
+```
+
+Chunk 45:
+```{r}
+#Final interpretation of the model - relative chances of getting a stroke.
+
 round (exp(coef(Newstrokepredict)),3)
 
 #Conclusion: People with history of hypertension as well as people with heart disease are relatively more likely (46% and 39% respectively) to experience stroke.
+##
 ```
 
