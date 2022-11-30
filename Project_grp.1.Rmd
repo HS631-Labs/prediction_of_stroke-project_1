@@ -71,7 +71,7 @@ colSums(is.na(Stroke_dataset))
 Chunk 3:
 ```{r}
 #Summarising the data and replacing the NA's in the dataset with appropriate values.
-Stroke <- Stroke[,-15]
+Stroke_dataset <- Stroke_dataset[,-15] #Removed the duplicate BMI in rom 15
 summary(Stroke_dataset)
 Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
 Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
@@ -81,10 +81,11 @@ Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
 Chunk 4:
 ```{r}
 ###########
-Stroke_dataset$gender[Stroke_dataset$gender=="other"] <- NA
+Stroke_dataset$gender <- as.factor(Stroke$gender)
+Stroke_dataset$gender[Stroke_dataset$gender=="Other"] <- NA
 summary(Stroke_dataset$gender)
 table(Stroke_dataset$gender)
-Stroke <- Stroke_dataset[!(is.na(Stroke_dataset$gender)),]
+Stroke_dataset <- Stroke_dataset[!(is.na(Stroke_dataset$gender)),]
 summary(Stroke_dataset$gender)
 table(Stroke_dataset$gender)
 ```
@@ -141,7 +142,7 @@ lines(density(Stroke_dataset$logglucose),lwd=2,col="red")
 
 Chunk 10:
 ```{r}
-#Categorizing age in different groups.
+#Categorizing age in different groups. (Change age to 60)
 
 Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<46]="0-45"
 Stroke_dataset$age_cat[Stroke_dataset$age>=46 & Stroke_dataset$age<91]="46-90"
@@ -367,6 +368,11 @@ Chunk 30:
 ```{r}
 #Correlation matrix
 
+#corr = round(cor(Stroke[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
+#corr
+#none correlated
+#ggcorrplot(corr,hc.order=TRUE)
+
 Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
 colSums(is.na(Stroke_dataset))
 Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
@@ -423,7 +429,7 @@ ggplot(data=Stroke_dataset,aes(x=OnAdmit_heartRate)) + geom_density() + ggtitle(
   xlab("Heart rate (beats/min)") 
 
 ```
-Chunk 33:
+Chunk 33: Repeated can be updated
 ```{r}
 
 Stroke_dataset$logbmi <- log(Stroke_dataset$bmi)
@@ -437,7 +443,7 @@ ggplot(data=Stroke_dataset,aes(x=bmi,fill=stroke)) + geom_density()
 
 Chunk 34:
 ```{r}
-#Splitting the data to Train data and test data 
+#Splitting the data to Train data and test data (as a standard practise to train and validate model before deployment)
 
 split <- sample.split(Stroke_dataset$stroke, SplitRatio = 0.8)
 TrainStroke <- subset(Stroke_dataset,split==TRUE)
@@ -467,7 +473,7 @@ plot(strokepredict) # Review cook's distance plot to identify outlier patients. 
 
 rev(sort(round(cooks.distance(strokepredict),2))) # Another way to identify outliers by comparing numerical values of Cook's distance for each patient and sorting them in descending order. In this specific case, there are no outliers.
 
-exp(coef(strokepredict))
+round(exp(coef(strokepredict)),3)
 
 ```
 
@@ -495,7 +501,7 @@ Chunk 39:
 ```{r}
 #Plotting the model output
 
-predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke$stroke)
+predicted.data <- data.frame(probability.of.stroke=strokepredict$fitted.values,stroke = Stroke_dataset$stroke)
 predicted.data <- predicted.data[order(predicted.data$probability.of.stroke,decreasing=FALSE),]
 predicted.data$rank <- 1:nrow(predicted.data)
 ggplot(data=predicted.data,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
@@ -506,7 +512,7 @@ Chunk 40:
 ```{r}
 #Model 2
 #Interaction effects of variables where it makes logical sense. However, none of the co-efficients of interaction variables are significant.
-strokepredict2 <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate +age*hypertension + age*heart_disease + hypertension*heart_disease + heart_disease*smoking_status + hypertension*OnAdmit_heartRate + age*avg_glucose_level, data = Stroke, family="binomial")
+strokepredict2 <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate +age*hypertension + age*heart_disease + hypertension*heart_disease + heart_disease*smoking_status + hypertension*OnAdmit_heartRate + age*avg_glucose_level, data = Stroke_dataset, family="binomial")
 summary(strokepredict2)
 ```
 
@@ -530,18 +536,30 @@ anova(strokepredict, strokepredict2, strokepredict3, Newstrokepredict, test = "C
 
 Chunk 43:
 ```{r}
-#Recalculating R2 and P value for the updated model
+#Recalculating R2 and P value for the updated model4
 ll.null <- Newstrokepredict$null.deviance/-2
 ll.proposed <- Newstrokepredict$deviance/-2
 (ll.null-ll.proposed)/ll.null
 
 1-pchisq(2*(ll.proposed-ll.null),df=(length(Newstrokepredict$coefficients)-1))
+
+#Calculating Rsquares using logisticpsuedoR2 formula. Output is similar to the R2 we computed earlier in the model
+dev <- Newstrokepredict$deviance
+nullDev <- Newstrokepredict$null.deviance
+modelN <- length(Newstrokepredict$fitted.values)
+R.l <- 1 - dev/nullDev
+R.cs <- 1 - exp(-(nullDev - dev)/modelN)
+R.n <- R.cs/(1 - (exp(-(nullDev/modelN))))
+round(R.l,3)
+round(R.cs,3)
+round(R.n,3)
 ```
+
 
 Chunk 44:
 ```{r}
 #plotting the model output
-predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke$stroke)
+predicted.data1 <- data.frame(probability.of.stroke=Newstrokepredict$fitted.values,stroke = Stroke_dataset$stroke)
 predicted.data1 <- predicted.data1[order(predicted.data1$probability.of.stroke,decreasing=FALSE),]
 predicted.data1$rank <- 1:nrow(predicted.data1)
 ggplot(data=predicted.data1,aes(x=rank,y=probability.of.stroke))+geom_point(aes(color=stroke),alpha=1,shape=4,stroke=2)
@@ -561,7 +579,7 @@ confmatrix
 
 Chunk 46:
 ```{r}
-#confusion matrix for the Model2
+#confusion matrix for the Model4
 ResultStroke <- predict(Newstrokepredict,TestStroke,type="response")
 
 confmatrix <- table(Actualvalue=TestStroke$stroke, Predictedvalue = ResultStroke >0.5)
@@ -575,18 +593,7 @@ round (exp(coef(Newstrokepredict)),3)
 
 ```
 
-Chunk 48:
-```{r}
-#Calculating Rsquares using logisticpsuedoR2 formula. Output is similar to the R2 we computed earlier in the model
-dev <- Newstrokepredict$deviance
-nullDev <- Newstrokepredict$null.deviance
-modelN <- length(Newstrokepredict$fitted.values)
-R.l <- 1 - dev/nullDev
-R.cs <- 1 - exp(-(nullDev - dev)/modelN)
-R.n <- R.cs/(1 - (exp(-(nullDev/modelN))))
-round(R.l,3)
-round(R.cs,3)
-round(R.n,3)
+
 
 ```
 
