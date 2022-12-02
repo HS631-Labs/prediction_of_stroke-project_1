@@ -1,6 +1,8 @@
 ---
 title: "Prediction of stroke"
-output: powerpoint_presentation
+output:
+  slidy_presentation: default
+  powerpoint_presentation: default
 date: "2022-11-18"
 ---
 
@@ -108,6 +110,7 @@ lines(density(Stroke_dataset$bmi),lwd=2,col="red")
 
 ```
 
+
 Chunk 7:
 ```{r}
 #Log Transformation for BMI.
@@ -133,7 +136,7 @@ Chunk 9:
 #Log Transformation for average glucose levels.
 
 Stroke_dataset$logglucose <- log(Stroke_dataset$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
-hist(Stroke_dataset$logglucose,col="light green",border="black",prob=TRUE,xlab="BMI",main="Distribution of patients")
+hist(Stroke_dataset$logglucose,col="light green",border="black",prob=TRUE,xlab="Avg_Blood glucose",main="Distribution of patients")
 lines(density(Stroke_dataset$logglucose),lwd=2,col="red")
 #ggplot(data=Stroke_dataset,aes(x=logglucose)) + geom_density()
 
@@ -142,10 +145,10 @@ lines(density(Stroke_dataset$logglucose),lwd=2,col="red")
 
 Chunk 10:
 ```{r}
-#Categorizing age in different groups. (Change age to 60)
+#Categorizing age in different groups. (~Neha update the age to 0-60 and >60)
 
-Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<46]="0-45"
-Stroke_dataset$age_cat[Stroke_dataset$age>=46 & Stroke_dataset$age<91]="46-90"
+Stroke_dataset$age_cat[Stroke_dataset$age>=0 & Stroke_dataset$age<61]="0-60"
+Stroke_dataset$age_cat[Stroke_dataset$age>=61 & Stroke_dataset$age<91]="61-90"
 
 #Plotting different age groups with absence and presence of stroke.
 
@@ -282,6 +285,7 @@ text(x=bmi,y=BMI_vs_Stroke + 100.0,labels=BMI_vs_Stroke)
 
 ```
 
+
 Chunk 20:
 ```{r}
 #Applying chi-square test to find an association between different categorical independent variables and the dependent variable(stroke).
@@ -368,12 +372,12 @@ Chunk 30:
 ```{r}
 #Correlation matrix
 
-#corr = round(cor(Stroke[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
-#corr
+corr = round(cor(Stroke[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
+corr
 #none correlated
-#ggcorrplot(corr,hc.order=TRUE)
+ggcorrplot(corr,hc.order=TRUE)
 
-Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
+#Stroke_dataset <- read.csv("/Users/nehabhasin/Desktop/HS631-STATS/PREDICTION OF STROKE_PROJECT/prediction_of_stroke-project_1/data/Stroke_dataset.csv",header = TRUE, sep = ",")
 colSums(is.na(Stroke_dataset))
 Stroke_dataset$bmi[is.na(Stroke_dataset$bmi)] <- 0
 Stroke_dataset$bmi[Stroke_dataset$bmi==0] <- sample(23.50:28.89,replace=TRUE)
@@ -429,15 +433,15 @@ ggplot(data=Stroke_dataset,aes(x=OnAdmit_heartRate)) + geom_density() + ggtitle(
   xlab("Heart rate (beats/min)") 
 
 ```
-Chunk 33: Repeated can be updated
+Chunk 33: Repeated to be updated
 ```{r}
 
-Stroke_dataset$logbmi <- log(Stroke_dataset$bmi)
-Stroke_dataset$logglucose <- log(Stroke_dataset$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
+#Stroke_dataset$logbmi <- log(Stroke_dataset$bmi)
+#Stroke_dataset$logglucose <- log(Stroke_dataset$avg_glucose_level-45)####iterated to 45 for alteast normal distribution
 #######
 #plotting for combination nominal variables (smoking staus, bmi)
-ggplot(data=Stroke_dataset,aes(x=smoking_status,fill=stroke)) + geom_histogram(stat="count")
-ggplot(data=Stroke_dataset,aes(x=bmi,fill=stroke)) + geom_density()
+#ggplot(data=Stroke_dataset,aes(x=smoking_status,fill=stroke)) + geom_histogram(stat="count")
+#ggplot(data=Stroke_dataset,aes(x=bmi,fill=stroke)) + geom_density()
 
 ```
 
@@ -453,16 +457,7 @@ stat.desc(TrainStroke, basic = FALSE, norm = TRUE)
 stat.desc(TestStroke, basic = FALSE, norm = TRUE)
 ```
 
-Chunk 35:
-```{r}
-########
-#Identifying correlation
-corr = round(cor(Stroke_dataset[,c(3,9,10,13,14,15,16,17)]),2) #rounding to 2 decimal
-corr
-#none correlated
-ggcorrplot(corr,hc.order=TRUE)
 
-```
 Chunk 36:
 ```{r}
 #Applying Logistic regression to all independent variables.
@@ -476,14 +471,13 @@ rev(sort(round(cooks.distance(strokepredict),2))) # Another way to identify outl
 round(exp(coef(strokepredict)),3)
 
 ```
-
-Chunk 37:
 ```{r}
 #Additional safeguards to eliminate independant variables with high correlation amongst themselves
 
 vif(strokepredict)
 
 ```
+
 
 Chunk 38:
 ```{r}
@@ -512,7 +506,7 @@ Chunk 40:
 ```{r}
 #Model 2
 #Interaction effects of variables where it makes logical sense. However, none of the co-efficients of interaction variables are significant.
-strokepredict2 <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP + OnAdmit_heartRate +age*hypertension + age*heart_disease + hypertension*heart_disease + heart_disease*smoking_status + hypertension*OnAdmit_heartRate + age*avg_glucose_level, data = Stroke_dataset, family="binomial")
+strokepredict2 <- glm(stroke ~ gender + age + hypertension + heart_disease + ever_married + work_type + Residence_type + avg_glucose_level + bmi + smoking_status + sysBP + diaBP +  OnAdmit_heartrate +age*hypertension + age*heart_disease + hypertension*heart_disease + heart_disease*smoking_status  + age*avg_glucose_level, data = Stroke_dataset, family="binomial")
 summary(strokepredict2)
 ```
 
@@ -531,7 +525,7 @@ Chunk 42:
 Newstrokepredict <- stepAIC (strokepredict)
 summary(Newstrokepredict)
 
-anova(strokepredict, strokepredict2, strokepredict3, Newstrokepredict, test = "Chisq")
+anova(strokepredict, strokepredict3, Newstrokepredict, test = "Chisq")
 ```
 
 Chunk 43:
@@ -590,6 +584,9 @@ Chunk 47:
 ```{r}
 #Final interpretation of the model - relative chances of getting a stroke
 round (exp(coef(Newstrokepredict)),3)
+#anova(strokepredict,Newstrokepredict, test = "Chisq")
+anova(strokepredict, strokepredict3, Newstrokepredict, test = "Chisq")
+round(exp(confint(Newstrokepredict)),3)
 
 ```
 
@@ -599,6 +596,10 @@ round (exp(coef(Newstrokepredict)),3)
 
 Chunk 49:
 ```{r}
-#Conclusion: People with history of hypertension as well as people with heart disease are relatively more likely (46% and 39% respectively) to experience stroke.
+
+#Population with history of hypertension  are more likely(46%) to experience stroke compared to people without hypertension.
+
+#Population with prior history of heart disease are more likely (39%) to experience stroke compared to people without history of heart disease.
+
 ```
 
